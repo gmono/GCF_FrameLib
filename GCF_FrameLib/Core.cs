@@ -53,7 +53,7 @@ namespace GCF_FrameLib
         /// <param name="classname"> 调用的对象的类名 包括命名空间</param>
         /// <param name="funname">函数名</param>
         /// <param name="pars">参数表 由此函数内部转换为具体类型 注意类型只支持基础数据类型以及实现了Parse静态方法的类型</param>
-        bool invoke(string classname,string funname, out object result,params string[] pars)
+        public bool invoke(string classname,string funname, out object result,params string[] pars)
         {
             if(objs.ContainsKey(classname))
             {
@@ -63,6 +63,7 @@ namespace GCF_FrameLib
                     MethodInfo minfo = obj.methods[funname];
                     ParameterInfo[] parinfo = minfo.GetParameters();//获得参数表信息
                     //下面验证传过来的pars是否符合个数要求
+                    if (pars == null) pars = new string[0];
                     if(pars.Length<parinfo.Length)
                     {
                         for(int i=pars.Length;i<parinfo.Length;i++)
@@ -78,10 +79,11 @@ namespace GCF_FrameLib
                     {
                         var pinfo = parinfo[index];
                         Type ptype = pinfo.ParameterType;
-                        if (ptype.Name == "string") mpars[index] = s;//是字符串就直接放入
+                        if (ptype.FullName == "System.String") mpars[index] = s;//是字符串就直接放入
                         else
                         {
-                            MethodInfo parsemet = ptype.GetMethod("Parse");
+                            
+                            MethodInfo parsemet = ptype.GetMethod("Parse",new Type[] { typeof(string) });
                             if (parsemet == null) { result = null; return false; }//如果有一个参数解析函数没有就返回 调用不合法
                             object p = parsemet.Invoke(null, new object[] { s });//解析字符串
                             if (p == null) { result = null; return false; }//解析失败就返回 调用不合法
@@ -96,6 +98,22 @@ namespace GCF_FrameLib
                 }
             }
             result = null; return false; 
+        }
+        public bool getvalue(string classname, string valuename, out object result)
+        {
+            if (objs.ContainsKey(classname))
+            {
+                WebObject obj = objs[classname];
+                if (obj.props.ContainsKey(valuename))
+                {
+                    PropertyInfo info = obj.props[valuename];
+                    if (obj.obj == null) createWebObject(obj);
+                    result = info.GetValue(obj.obj);
+                    return true;
+                }
+            }
+            result = null;
+            return false;
         }
         /// <summary>
         /// 创建一个webobject对象的实例
@@ -113,6 +131,7 @@ namespace GCF_FrameLib
         private void loadWebObject(WebObject obj,bool iscreate)
         {
             Type t = obj.type;
+            if (obj.methods == null) obj.methods = new Dictionary<string, MethodInfo>();
             //加载方法
             MethodInfo[] mts = t.GetMethods();
             foreach (var m in mts)
@@ -123,6 +142,7 @@ namespace GCF_FrameLib
                 obj.methods.Add(m.Name, m);
             }
             //加载属性
+            if (obj.props == null) obj.props = new Dictionary<string, PropertyInfo>();
             PropertyInfo[] pts = t.GetProperties();
             foreach (var p in pts)
             {
@@ -133,6 +153,17 @@ namespace GCF_FrameLib
             }
             if (iscreate) createWebObject(obj);//创建对象实例
         }
+
+
+        //这里是关于自动ajax代码生成的代码
+
+        //
+
+
+        /// <summary>
+        /// 加载一个类型 警告：多会话对象不可调用此方法 否则后果自负
+        /// </summary>
+        /// <param name="t">要加载的类型</param>
         public void loadtype(Type t)
         {
             WebObject obj = new WebObject();
@@ -141,12 +172,12 @@ namespace GCF_FrameLib
             {
                 loadWebObject(obj, false);//不创建实例
                 //多会话模式的处理
-                emptyclasses.Add(t.FullName,new WebObject() { type=obj.type});
+                emptyclasses.Add(t.FullName,new WebObject() { type=obj.type,methods=obj.methods,props=obj.props});
                 //以上为将类型复制一个加入空类型表 以便以后创建的多会话对象复制到自身对象表
                 //以下为处理以创建多会话对象的对象表
                 foreach(var v in multiobjs)
                 {
-                    v.objs.Add(t.FullName, new WebObject() { type = obj.type });//加入已创建对象的对象表 其中包括自己（构造函数中添加的this）
+                    v.objs.Add(t.FullName, new WebObject() { type = obj.type, methods = obj.methods, props = obj.props });//加入已创建对象的对象表 其中包括自己（构造函数中添加的this）
                 }
             }
             else
