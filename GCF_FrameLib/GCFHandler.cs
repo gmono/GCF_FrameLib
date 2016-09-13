@@ -22,6 +22,7 @@ namespace GCF_FrameLib
         public void ProcessRequest(HttpContext context)
         {
             //在此处写入您的处理程序实现。
+            
         }
 
         #endregion

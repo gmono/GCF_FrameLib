@@ -47,13 +47,50 @@ namespace GCF_FrameLib
         /// 对象表 不管什么模式 每个Core对象总有一个对象表
         /// </summary>
         Dictionary<string, WebObject> objs = new Dictionary<string, WebObject>();
+
         /// <summary>
-        /// 调用函数的接口
+        /// 纯净的invoke 没有字符串转换
+        /// </summary>
+        /// <param name="classname"></param>
+        /// <param name="funname"></param>
+        /// <param name="result"></param>
+        /// <param name="pars"></param>
+        /// <returns></returns>
+        public bool invoke(string classname,string funname,out object result,params object[] pars)
+        {
+            if (objs.ContainsKey(classname))
+            {
+                WebObject obj = objs[classname];
+                if (obj.methods.ContainsKey(funname))
+                {
+                    MethodInfo minfo = obj.methods[funname];
+                    ParameterInfo[] parinfo = minfo.GetParameters();//获得参数表信息
+                    //下面验证传过来的pars是否符合个数要求
+                    if (pars == null) pars = new string[0];
+                    if (pars.Length < parinfo.Length)
+                    {
+                        for (int i = pars.Length; i < parinfo.Length; i++)
+                        {
+                            ParameterInfo pinfo = parinfo[i];
+                            if (!pinfo.HasDefaultValue) { result = null; return false; }//只要有一个没有默认值就返回 意味着参数个数小于参数表参数个数时后面的必须全部有默认值
+                        }
+                    }
+                    
+                    //此处为多会话模式的关键代码 如果可以调用方法 并且需要创建对象就创建对象
+                    if (obj.obj == null) createWebObject(obj);//如果对象没有实例就创建一个实例 理论上如果独立模式采用延迟创建方法这个代码也可以工作
+                    result = minfo.Invoke(obj.obj, pars);//调用方法 返回对象
+                    return true;
+                }
+            }
+            result = null; return false;
+        }
+        /// <summary>
+        /// 调用函数的接口 parse函数声明 首字母大写 静态方法 返回对应对象 接受一个string
         /// </summary>
         /// <param name="classname"> 调用的对象的类名 包括命名空间</param>
         /// <param name="funname">函数名</param>
         /// <param name="pars">参数表 由此函数内部转换为具体类型 注意类型只支持基础数据类型以及实现了Parse静态方法的类型</param>
-        public bool invoke(string classname,string funname, out object result,params string[] pars)
+        public bool stringinvoke(string classname,string funname, out object result,params string[] pars)
         {
             if(objs.ContainsKey(classname))
             {
@@ -232,6 +269,11 @@ namespace GCF_FrameLib
                 return false;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         public bool loadfile(string file)
         {
             string filename = new FileInfo(file).FullName;
