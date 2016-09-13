@@ -18,11 +18,16 @@ namespace GCF_FrameLib
             // 如果按请求保留某些状态信息，则通常这将为 false。
             get { return true; }
         }
-
+        Core invcore = new Core(); //调用核心
         public void ProcessRequest(HttpContext context)
         {
             //在此处写入您的处理程序实现。
-            
+            //这个处理程序处理csapi文件(cs源文件vb的为 vbapi）
+            string path = context.Request.Url.AbsolutePath;
+            var asm = MLoad.LoadCS(AppDomain.CurrentDomain.BaseDirectory+path);
+            invcore.loadmod(asm, path);///加载程序集
+
+            var s=context.Items;
         }
 
         #endregion

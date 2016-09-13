@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using GCF_FrameLib;
+namespace testapp
+{
+    [AttrWebApi]
+    public class testclass
+    {
+        [WebFunction]
+        public string test(string a,string b)
+        {
+            return a + b;
+        }
+    }
+}

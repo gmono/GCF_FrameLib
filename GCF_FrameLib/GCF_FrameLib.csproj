@@ -48,6 +48,7 @@
     <Compile Include="ArrtWebApi.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="GCFHandler.cs" />
+    <Compile Include="MLoad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebFunction.cs" />
     <Compile Include="WebValue.cs" />

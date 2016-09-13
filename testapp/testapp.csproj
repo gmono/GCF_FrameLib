@@ -79,6 +79,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="testclass.csapi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GCF_FrameLib\GCF_FrameLib.csproj">
+      <Project>{41ff36a0-4c25-4bf2-972d-eaeef149af83}</Project>
+      <Name>GCF_FrameLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
