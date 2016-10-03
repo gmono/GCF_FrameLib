@@ -24,10 +24,19 @@ namespace GCF_FrameLib
             //在此处写入您的处理程序实现。
             //这个处理程序处理csapi文件(cs源文件vb的为 vbapi）
             string path = context.Request.Url.AbsolutePath;
+            path=path.Substring(1, path.Length - 1);
             var asm = MLoad.LoadCS(AppDomain.CurrentDomain.BaseDirectory+path);
             invcore.loadmod(asm, path);///加载程序集
 
-            var s=context.Items;
+            var s = context.Request.QueryString.ToString();
+            string[] ss = s.Split('&');
+            string cls = ss[0];
+            string funs = ss[1];
+            string[] pars = new string[ss.Length - 2];
+            ss.CopyTo(pars, 2);
+            object res;
+            invcore.stringinvoke(ss[0], ss[1], out res, pars);
+            context.Response.Write(res.ToString());
         }
 
         #endregion

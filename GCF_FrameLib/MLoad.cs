@@ -25,10 +25,12 @@ namespace GCF_FrameLib
             CSharpCodeProvider provider = new CSharpCodeProvider();
             CompilerParameters par = new CompilerParameters();
             par.ReferencedAssemblies.Add("System.dll");
+            par.ReferencedAssemblies.Add(@"C:\Users\gaozi.DESKTOP-8ESAD0C\Documents\Visual Studio 2015\Projects\GCF_FrameLib\GCF_FrameLib\bin\Debug\GCF_FrameLib.dll");
             par.GenerateExecutable = false;
             par.GenerateInMemory = true;
             CompilerResults result = provider.CompileAssemblyFromFile(par, new string[] { path });
 
+            //var t = new System.IO.FileInfo(path);
             if (result.Errors.HasErrors)
             {
                 throw new Exception("编译错误");
